@@ -232,6 +232,10 @@ i {
     color: hsl(0, 31%, 37%);
 }
 
+.word-entry {
+    padding-right: 2em;
+}
+
 /*  Scrollbar */
 
 ::-webkit-scrollbar {

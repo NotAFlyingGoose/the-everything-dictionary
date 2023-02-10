@@ -1,0 +1,188 @@
+{% extends "subpage.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    {% if is_capital %}
+    <p>Not the right word? Try “{{ title.to_lowercase() }}” instead of “{{ title }}”</p>
+    {% endif %}
+    <div id="word">
+    </div>
+
+    <script>
+        let word = '{{ title }}';
+
+        let appendEl = function(into, tag, text, { id='', clazz='' } = {}) {
+            let el = document.createElement(tag);
+            if (id)
+                el.setAttribute('id', id);
+            if (clazz)
+                el.className = clazz;
+            let text_el = document.createTextNode(text);
+            el.appendChild(text_el);
+            into.appendChild(el);
+        }
+
+        let createEl = function(tag, { id='', clazz='' } = {}) {
+            let el = document.createElement(tag);
+            if (id)
+                el.setAttribute('id', id);
+            if (clazz)
+                el.className = clazz;
+            return el;
+        }
+
+        fetch('/api/' + word).then(function(response) {
+            return response.json();
+        }).then(function(data) {
+            data = data[word];
+            console.log(data);
+
+            let word_container = $('#word')[0];
+
+            let word_left = createEl('div', { clazz: 'word-column' });
+            let word_right = createEl('div', { clazz: 'word-column' });
+
+            if (data['overview']) {
+                let overview = createEl('div', { id: 'wordOverview' });
+
+                console.log('overview');
+                let tag = 'h3';
+                for (raw_line of data['overview']) {
+                    let line = createEl(tag);
+                    line.innerHTML = decodeURIComponent(raw_line);
+                    overview.appendChild(line);
+                    tag = 'h4';
+                }
+
+                word_left.appendChild(overview);
+            }
+
+            let defs_div = createEl('ul', { clazz: 'definitions' });
+
+            let add_definitions = function(definitions) {
+                if (!definitions)
+                    return;
+
+                let entries = [];
+                let last_pos = '';
+
+                for (def of definitions) {
+                    if (entries.length === 0 || last_pos !== def['part_of_speech']) {
+                        entries.push(createEl('ol', { clazz: 'word-entry' }));
+                        if (entries.length !== 0)
+                            appendEl(entries[entries.length - 1], 'br')
+                        appendEl(entries[entries.length - 1], 'span', def['part_of_speech'], { 
+                            clazz: 'part_of_speech ' + def['part_of_speech'] 
+                        });
+                        last_pos = def['part_of_speech'];
+                    }
+
+                    let li = createEl('li', { clazz: 'numbered' });
+
+                    let def_content = createEl('div', { clazz: 'defContent' });
+
+                    let meaning = createEl('span', { clazz: 'meaning' });
+                    meaning.innerHTML = decodeURIComponent(def['meaning']);
+                    def_content.appendChild(meaning);
+                    
+                    li.appendChild(def_content);
+
+                    let examples = createEl('ul', { clazz: 'examples' });
+                    for (example of def['examples']) {
+                        let ex_li = createEl('li', { clazz: 'example' });
+                        ex_li.innerHTML = decodeURIComponent(example);
+                        examples.appendChild(ex_li);
+                    }
+                    li.appendChild(examples);
+
+                    entries[entries.length - 1].appendChild(li);
+                }
+
+                for (entry of entries) {
+                    defs_div.appendChild(entry);
+                }
+            }
+
+            add_definitions(data['vocab_defs']);
+            if (data['wiki_defs']) {
+                appendEl(defs_div, 'h2', 'Wiktionary', { clazz: 'alternate' });
+                add_definitions(data['wiki_defs']);
+            }
+            if (data['urban_defs']) {
+                appendEl(defs_div, 'h2', 'Urban Dictionary', { clazz: 'alternate' });
+                add_definitions(data['urban_defs']);
+            }
+
+            word_left.appendChild(defs_div);
+
+            // now the right side
+            
+            if (data['stock_images']) {
+                let img_containers = [
+                    createEl('div', { clazz: 'img-container' }),
+                    createEl('div', { clazz: 'img-container' }),
+                ];
+                for (idx in data['stock_images']) {
+                    let source = data['stock_images'][idx];
+                    let img = createEl('img', { clazz: 'stock-img' });
+                    img.setAttribute('src', source);
+
+                    img_containers[Math.floor(idx / 3)].appendChild(img);
+                }
+                for (container of img_containers) {
+                    word_right.appendChild(container);
+                }
+            }
+
+            let origin_div = createEl('ul', { clazz: 'origins' });
+            appendEl(origin_div, 'h2', 'Word Origin');
+
+            let add_origins = function(origins) {
+                if (!origins)
+                    return;
+                for (origin of origins) {
+                    let li = createEl('li', { class: 'origin' });
+
+                    if (origin['part_of_speech']) {
+                        appendEl(li, 'span', origin['part_of_speech'], { 
+                            clazz: 'part_of_speech ' + origin['part_of_speech'] 
+                        });
+                    }
+
+                    let raw_origin = decodeURIComponent(origin['origin']);
+                    let paras = raw_origin.split('<br>');
+
+                    for (para of paras) {
+                        let para_el = createEl('p', { clazz: 'origin-text' });
+                        para_el.innerHTML = para;
+                        li.appendChild(para_el);
+                    }
+
+                    origin_div.appendChild(li);
+                }
+            }
+
+            add_origins(data['etym_origins']);
+            add_origins(data['wiki_origins']);
+
+            word_right.appendChild(origin_div);
+
+            let sources = createEl('div', { clazz: 'sources' });
+            appendEl(sources, 'h4', 'Sources')
+            for (source of data['sources']) {
+                appendEl(sources, 'p', source);
+            }
+            word_right.appendChild(sources);
+
+            word_container.appendChild(word_left);
+            word_container.appendChild(word_right);
+
+            word_container.className += 'slide-up';
+        }).catch(function(err) {
+            console.log('Fetch Error :-S', err);
+        })
+    </script>
+{% endblock %}

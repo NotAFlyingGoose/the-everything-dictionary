@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}The Everything Dictionary{% endblock %}
+
+{% block body %}
+<div style="position:absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);">
+    <img class="logo" src="logo_large.png" style="width: 100%; display: block; margin-left: auto; margin-right: auto;">
+    <input type="text" placeholder="Learn a new word" id="search" onkeydown="search(this)"/>
+</div>
+<p style="position: absolute; bottom: 0; left: 50%; transform: translate(-50%, -50%); color: gray; font-size: 1.5em;">
+    Made by <a href="https://github.com/NotAFlyingGoose/">NotAFlyingGoose</a>
+</p>
+{% endblock %}

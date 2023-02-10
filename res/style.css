@@ -1,0 +1,269 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+
+html {
+    font-family: 'Roboto', sans-serif;
+	background-color: #222222;
+	color: white;
+	font-weight: light;
+}
+
+#content {
+	margin-left: 10%;
+	margin-right: 10%;
+}
+
+#wordOverview {
+	width: 60%;
+	margin-left: 2em;
+}
+
+h1 {
+	font-family: 'Lora', serif;
+	font-size: 4em;
+	line-height: 150%;
+	font-weight: normal;
+    color: salmon;
+}
+
+h2 {
+	font-family: 'Lora', serif;
+	font-size: 2em;
+	line-height: 150%;
+	font-weight: normal;
+    color: gray;
+}
+
+h3 {
+	font-family: 'Lora', serif;
+	font-size: 1.5em;
+	line-height: 150%;
+	font-weight: normal;
+}
+
+h4 {
+	font-family: 'Lora', serif;
+	font-size: 1.15em;
+	line-height: 175%;
+	font-weight: normal;
+}
+
+ul {
+	list-style-type: none;
+}
+
+.defContent {
+	padding: 1em 0 0.5em 0;
+	line-height: 150%;
+}
+
+.part_of_speech {
+    font-size: 1.5em;
+	border-radius: 15px;
+	padding: 0px 6px 3px 6px;
+}
+
+.noun {
+	border: 1px solid lime;
+	color: lime;
+}
+
+.adjective {
+	border: 1px solid cornflowerblue;
+	color: cornflowerblue;
+}
+
+.article {
+	border: 1px solid orchid;
+	color: orchid;
+}
+
+.particle {
+	border: 1px solid teal;
+	color: teal;
+}
+
+.verb {
+	border: 1px solid orange;
+	color: orange;
+}
+
+.adverb {
+	border: 1px solid violet;
+	color: violet;
+}
+
+.slang {
+	border: 1px solid khaki;
+	color: khaki;
+}
+
+.interjection {
+	border: 1px solid indianred;
+	color: indianred;
+}
+
+.phrase {
+	border: 1px solid hotpink;
+	color: hotpink;
+}
+
+.proverb {
+	border: 1px solid salmon;
+	color: salmon;
+}
+
+.preposition {
+	border: 1px solid springgreen;
+	color: springgreen;
+}
+
+.conjunction {
+	border: 1px solid salmon;
+	color: salmon;
+}
+
+.prefix {
+	border: 1px solid green;
+	color: green;
+}
+
+.suffix {
+	border: 1px solid cadetblue;
+	color: cadetblue;
+}
+
+.definition {
+	padding-left: 1em;
+}
+
+.example {
+	font-style: italic;
+	color: gray;
+	margin-left: 1em;
+}
+
+.img-container {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	margin-left: auto;
+	margin-right: auto;
+    padding-top: .333%;
+}
+
+.stock-img {
+	max-width: 33%;
+	height: auto;
+	border-radius: 10px;
+}
+
+p {
+	color: gray;
+}
+
+#search {
+	width: 60%;
+	border-radius: 2em;
+	padding: 1em;
+	margin: auto;
+	display: block;
+	font-size: 1em;
+	background-color: #333333;
+	color: white;
+	border-style: hidden;
+}
+
+#search:focus {
+  outline: none;
+}
+
+#title {
+	color: rgb(107, 200, 255);
+}
+
+.logo {
+    filter: brightness(75%);
+}
+
+a {
+    text-decoration: none;
+    color: lightgray;
+}
+
+#word {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	margin-left: auto;
+	margin-right: auto;
+    transform: translateY(100%);
+    -webkit-transform: translateY(100%);
+}
+
+.word-column {
+	max-width: 50%;
+	height: auto;
+	border-radius: 10px;
+}
+
+.alternate {
+    font-size: 3.5em;
+    padding: auto;
+    padding-top: 0.25em;
+    text-align: center;
+    color: gray;
+}
+
+.sources {
+    text-align: right;
+}
+
+.origin-text {
+    line-height: 150%;
+    color: lightgray;
+}
+
+i {
+    color: lightcoral;
+}
+
+.example strong {
+    color: hsl(0, 31%, 37%);
+}
+
+/*  Scrollbar */
+
+::-webkit-scrollbar {
+    width: 20px;
+}
+  
+::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+  
+::-webkit-scrollbar-thumb {
+    background-color: gray;
+    border-radius: 20px;
+    border: 6px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: lightgray;
+}
+
+/* Sliding animation */
+
+.slide-up {
+    animation: slide-up 0.5s forwards;
+    -webkit-animation: slide-up 0.5s forwards;
+}
+
+@keyframes slide-up {
+    100% { transform: translateY(0%); }
+}
+
+@-webkit-keyframes slide-up {
+    100% { -webkit-transform: translateY(0%); }
+}

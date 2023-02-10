@@ -1,0 +1,19 @@
+[package]
+name = "the-everything-dictionary"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+askama = "0.11.1"
+reqwest = "0.11.14"
+scraper = "0.14.0"
+ego-tree = "0.6.2"
+regex = "1.7.1"
+rocket = "0.5.0-rc.2"
+urlencoding = "2.1.2"
+
+[dependencies.tokio]
+version = "1.21.2"
+features = ["macros", "signal", "rt-multi-thread"]

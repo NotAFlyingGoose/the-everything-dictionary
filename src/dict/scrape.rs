@@ -232,21 +232,6 @@ pub(crate) async fn scrape_etym(word: &str) -> Option<(Vec<Origin>, &str)> {
 
     let doc = Html::parse_document(&body);
 
-    // let doc = Html::parse_fragment(r#"
-    // <div class="aa">
-    //     <div class="head">
-    //         <div class="goose-chase">
-    //         </div>
-    //     </div>
-    //     <div class="bb123">
-    //         <div class="1235">
-    //         </div>
-    //         <div class="word--C9UPa word_4pc--2SZw8">
-    //             hello, world
-    //         </div>
-    //     </div>
-    // </div>"#);
-
     fn find_startswith<'a>(node: NodeRef<'a, Node>, pat: &str) -> Option<NodeRef<'a, Node>> {
         for child in node.children() {
             if !child.value().is_element() { continue }
@@ -274,7 +259,7 @@ pub(crate) async fn scrape_etym(word: &str) -> Option<(Vec<Origin>, &str)> {
     let all_entries = word_name.parent()?.parent()?.parent()?;
 
     for word_entry in all_entries.children() {
-        if !word_entry.value().is_element() { 
+        if !word_entry.value().is_element() {
             continue
         }
         let word_entry_el = word_entry.value().as_element()?;
@@ -328,7 +313,7 @@ pub(crate) async fn scrape_etym(word: &str) -> Option<(Vec<Origin>, &str)> {
             if !origin.is_empty() {
                 origin.push_str("<br>");
             }
-            origin.push_str(&&el_to_string_with_accepted(*p, &["span"], true));
+            origin.push_str(&&el_to_string_with_accepted(*p, &["span", "a"], true));
         }
 
         origins.push(Origin {

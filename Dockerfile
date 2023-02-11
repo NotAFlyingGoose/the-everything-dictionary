@@ -8,4 +8,4 @@ COPY . .
 
 RUN cargo install --path .
 
-CMD ROCKET_PORT=$PORT ./target/release/rocket
+CMD ROCKET_PORT=$PORT ./the-everything-dictionary

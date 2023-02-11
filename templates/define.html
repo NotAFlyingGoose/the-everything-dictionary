@@ -15,7 +15,7 @@
     
     <script>
         let word = '{{ title }}';
-
+        
         let appendEl = function(into, tag, text, { id='', clazz='' } = {}) {
             let el = document.createElement(tag);
             if (id)
@@ -168,7 +168,10 @@
             }
 
             add_origins(data['etym_origins']);
-            add_origins(data['wiki_origins']);
+            if (!data['etym_origins']) {
+                // appendEl(origin_div, 'h2', 'Wiktionary', { clazz: 'alternate-small' });
+                add_origins(data['wiki_origins']);
+            }
 
             word_right.appendChild(origin_div);
 
@@ -180,6 +183,15 @@
             for (source of data['sources']) {
                 appendEl(sources, 'p', source);
             }
+            appendEl(sources, 'br');
+            appendEl(sources, 'br');
+            let thanks = createEl('p');
+            appendEl(sources, 'p', 'This site is funded entirely by your ads. Thank You');
+            appendEl(sources, 'br');
+            appendEl(sources, 'br');
+            let suggestion = createEl('p');
+            suggestion.innerHTML = 'Have a suggestion? Send it to <a href="https://github.com/NotAFlyingGoose/" target="_blank" rel="noopener noreferrer">NotAFlyingGoose</a>'
+            sources.appendChild(suggestion);
             word_right.appendChild(sources);
 
             word_container.appendChild(word_left);

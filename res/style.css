@@ -6,8 +6,6 @@ html {
 	background-color: #222222;
 	color: white;
 	font-weight: light;
-    min-height: 100%;
-    height: 100%;
 }
 
 #content {
@@ -193,20 +191,8 @@ a {
     color: lightgray;
 }
 
-body {
-    min-height: 100%;
-    height: 100%;
-}
-
-#content {
-    min-height: 100%;
-    height: 100%;
-}
-
 #word {
 	width: 100%;
-    min-height: 100%;
-    height: 100%;
 	display: flex;
 	justify-content: space-between;
 	margin-left: auto;
@@ -229,6 +215,12 @@ body {
     color: gray;
 }
 
+.alternate-small {
+    font-size: 1.5em;
+    text-align: center;
+    color: gray;
+}
+
 .sources {
     text-align: right;
 }
@@ -238,12 +230,9 @@ body {
     color: lightgray;
 }
 
-i {
+i, b, strong {
     color: lightcoral;
-}
-
-.example strong {
-    color: hsl(0, 31%, 37%);
+    font-weight: normal;
 }
 
 .word-entry {

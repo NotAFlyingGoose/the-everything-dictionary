@@ -83,7 +83,7 @@ pub(crate) async fn api(word: String) -> RawJson<String> {
                 if idx != 0 {
                     json.push(',');
                 }
-                json.push_str(&format!("\"{}\"", example));
+                json.push_str(&format!("\"{}\"", encode(&example).replace("%20", " ")));
             }
 
             json.push_str("]}");

@@ -172,5 +172,5 @@ pub(crate) async fn api(word: String) -> RawJson<String> {
 
 #[get("/<file>")]
 pub(crate) async fn res(file: String) -> Option<NamedFile> {
-    NamedFile::open(Path::new("res/").join(file)).await.ok()
+    NamedFile::open(Path::new("public/").join(file)).await.ok()
 }

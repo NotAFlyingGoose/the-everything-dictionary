@@ -8,4 +8,4 @@ COPY . .
 
 RUN cargo install --path .
 
-CMD ROCKET_PORT=$PORT ls -R /
+CMD ROCKET_PORT=$PORT /usr/local/cargo/bin/the-everything-dictionary

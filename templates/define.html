@@ -36,6 +36,8 @@
             return el;
         }
 
+        let start_time = Date.now();
+
         fetch('/api/' + word).then(function(response) {
             return response.json();
         }).then(function(data) {

@@ -39,6 +39,8 @@
         fetch('/api/' + word).then(function(response) {
             return response.json();
         }).then(function(data) {
+            console.log('fetched in ' + (Date.now() - start_time) / 1000 + 's');
+
             data = data[word];
             console.log(data);
 
@@ -198,6 +200,8 @@
             word_container.appendChild(word_right);
 
             word_container.className += 'slide-up';
+
+            console.log('finished in ' + (Date.now() - start_time) / 1000 + 's');
         }).catch(function(err) {
             console.log('Fetch Error :-S', err);
         });

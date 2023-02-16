@@ -11,7 +11,7 @@ function search(ele) {
 
 document.onkeydown = function (evt) {
     evt = evt || window.event;
-    if (input !== document.activeElement) {
+    if (evt.key.length === 1 && input !== document.activeElement) {
         window.scrollTo(0, 0);
         input.focus();
         input.select();

@@ -2,9 +2,9 @@ use std::path::Path;
 
 use askama::{Template};
 use rocket::{fs::NamedFile, response::content::{RawHtml, RawJson}};
-use urlencoding::encode;
+use rocket_db_pools::{Connection, deadpool_redis::redis::AsyncCommands};
 
-use crate::dict;
+use crate::{dict::Word, Redis};
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -33,141 +33,34 @@ pub(crate) fn define(word: String) -> Option<RawHtml<String>> {
 }
 
 #[get("/api/<word>")]
-pub(crate) async fn api(word: String) -> RawJson<String> {
-    let mut sources = Vec::new();
+pub(crate) async fn api(mut db: Connection<Redis>, word: String) -> RawJson<String> {
+    let db_key = format!("word:{}", &word);
 
-    let mut json = format!("{{\"{}\":{{", word);
+    let word_data = {
+        if !db.exists(&db_key).await.unwrap_or_else(|err| {
+            println!("exists error: {}", err);
+            false
+        }) {
+            let new_word = Word::scrape(&word).await;
 
-    if let Some((short, long, defs, source)) = dict::scrape_vocab(&word).await {
-        sources.push(source);
+            let json = serde_json::to_string(&new_word).unwrap_or_else(|err| {
+                println!("Error parsing word into json: {}", err);
+                "{}".to_string()
+            });
 
-        json.push_str("\"overview\":[");
-        if let Some(short) = short {
-            json.push_str(&format!("\"{}\"", encode(&short).replace("%20", " ")));
+            db.set(&db_key, &json)
+                .await
+                .unwrap_or_else(|err| {
+                    println!("hset error: {}", err);
+                });
+            
+            json
+        } else {
+            db.get(&db_key).await.unwrap()
         }
-        if let Some(long) = long {
-            json.push_str(&format!(",\"{}\"", encode(&long).replace("%20", " ")));
-        }
-        json.push_str("],");
-
-        json.push_str("\"vocab_defs\":[");
-        for (idx, def) in defs.iter().enumerate() {
-            if idx != 0 {
-                json.push(',');
-            }
-            json.push_str(&format!("{{\"part_of_speech\":\"{}\",\"meaning\":\"{}\",\"examples\":[", def.part_of_speech, def.meaning));
-
-            for (idx, example) in def.examples.iter().enumerate() {
-                if idx != 0 {
-                    json.push(',');
-                }
-                json.push_str(&format!("\"{}\"", encode(&example).replace("%20", " ")));
-            }
-
-            json.push_str("]}");
-        }
-        json.push_str("],");
-    }
-
-    if let Some((origins, defs, source)) = dict::scrape_wiki(&word).await {
-        sources.push(source);
-
-        json.push_str("\"wiki_defs\":[");
-        for (idx, def) in defs.iter().enumerate() {
-            if idx != 0 {
-                json.push(',');
-            }
-            json.push_str(&format!("{{\"part_of_speech\":\"{}\",\"meaning\":\"{}\",\"examples\":[", def.part_of_speech, encode(&def.meaning).replace("%20", " ")));
-
-            for (idx, example) in def.examples.iter().enumerate() {
-                if idx != 0 {
-                    json.push(',');
-                }
-                json.push_str(&format!("\"{}\"", encode(&example).replace("%20", " ")));
-            }
-
-            json.push_str("]}");
-        }
-        json.push_str("],");
+    };
     
-        json.push_str("\"wiki_origins\":[");
-        for (idx, origin) in origins.iter().enumerate() {
-            if idx != 0 {
-                json.push(',');
-            }
-            json.push_str(&format!(
-                "{{\"part_of_speech\":\"{}\",\"origin\":\"{}\"}}", 
-                origin.part_of_speech, 
-                encode(&origin.origin).replace("%20", " ")
-            ));
-        }
-        json.push_str("],");
-    }
-
-    if sources.is_empty() {
-        if let Some((defs, source)) = dict::scrape_slang(&word).await {
-            sources.push(source);
-
-            json.push_str("\"urban_defs\":[");
-            for (idx, def) in defs.iter().enumerate() {
-                if idx != 0 {
-                    json.push(',');
-                }
-                json.push_str(&format!("{{\"part_of_speech\":\"{}\",\"meaning\":\"{}\",\"examples\":[", def.part_of_speech, encode(&def.meaning).replace("%20", " ")));
-
-                for (idx, example) in def.examples.iter().enumerate() {
-                    if idx != 0 {
-                        json.push(',');
-                    }
-                    json.push_str(&format!("\"{}\"", encode(&example).replace("%20", " ")));
-                }
-
-                json.push_str("]}");
-            }
-            json.push_str("],");
-        }
-    }
-
-    if let Some((origins, source)) = dict::scrape_etym(&word).await {
-        sources.push(source);
-
-        json.push_str("\"etym_origins\":[");
-        for (idx, origin) in origins.iter().enumerate() {
-            if idx != 0 {
-                json.push(',');
-            }
-            json.push_str(&format!(
-                "{{\"part_of_speech\":\"{}\",\"origin\":\"{}\"}}", 
-                origin.part_of_speech, 
-                encode(&origin.origin).replace("%20", " ")
-            ));
-        }
-        json.push_str("],");
-    }
-
-    if let Some((imgs, source)) = dict::scrape_stock(&word).await {
-        sources.push(source);
-
-        json.push_str("\"stock_images\":[");
-        for (idx, img) in imgs.iter().enumerate() {
-            if idx != 0 {
-                json.push(',');
-            }
-            json.push_str(&format!("\"{}\"", img));
-        }
-        json.push_str("],");
-    }
-
-    json.push_str("\"sources\":[");
-    for (idx, source) in sources.iter().enumerate() {
-        if idx != 0 {
-            json.push(',');
-        }
-        json.push_str(&format!("\"{}\"", source));
-    }
-    json.push_str("]}}");
-    
-    RawJson(json)
+    RawJson(word_data)
 }
 
 #[get("/<file>")]

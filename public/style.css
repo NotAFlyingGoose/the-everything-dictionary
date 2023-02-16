@@ -156,6 +156,7 @@ ul {
 	max-width: 33%;
 	height: auto;
 	border-radius: 10px;
+    object-fit: cover;
 }
 
 p {
@@ -199,6 +200,7 @@ a {
 	margin-right: auto;
     transform: translateY(100%);
     -webkit-transform: translateY(100%);
+    opacity: 0;
 }
 
 .word-column {
@@ -268,9 +270,15 @@ i, b, strong {
 }
 
 @keyframes slide-up {
-    100% { transform: translateY(0%); }
+    100% {
+        transform: translateY(0%);
+        opacity: 1;
+    }
 }
 
 @-webkit-keyframes slide-up {
-    100% { -webkit-transform: translateY(0%); }
+    100% {
+        -webkit-transform: translateY(0%);
+        opacity: 1;
+    }
 }

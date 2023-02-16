@@ -43,7 +43,6 @@
         }).then(function(data) {
             console.log('fetched in ' + (Date.now() - start_time) / 1000 + 's');
 
-            data = data[word];
             console.log(data);
 
             let word_container = $('#word')[0];
@@ -54,7 +53,6 @@
             if (data['overview']) {
                 let overview = createEl('div', { id: 'wordOverview' });
 
-                console.log('overview');
                 let tag = 'h3';
                 for (raw_line of data['overview']) {
                     let line = createEl(tag);

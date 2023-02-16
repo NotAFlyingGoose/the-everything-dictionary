@@ -47,7 +47,7 @@ pub(crate) struct Word {
 }
 
 impl Word {
-    pub(crate) async fn scrape(word: &str) -> Self {
+    pub(crate) async fn scrape(word: &str) -> Option<Self> {
         let mut sources = Vec::new();
 
         let (short, long, vocab_defs, source) = 
@@ -66,6 +66,11 @@ impl Word {
                 .unwrap_or((Vec::new(), Vec::new(), ""));
         
         if !source.is_empty() { sources.push(source.to_string()) }
+
+        // check for no defs
+        if vocab_defs.is_empty() && wiki_defs.is_empty() {
+            return None;
+        }
         
         let (etym_origins, source) = 
             scrape_etym(&word)
@@ -86,7 +91,7 @@ impl Word {
             .duration_since(UNIX_EPOCH)
             .expect("Time went backwards");
 
-        Word {
+        Some(Word {
             overview,
             vocab_defs,
             wiki_defs,
@@ -99,6 +104,6 @@ impl Word {
             sources,
 
             last_updated: now.as_millis().to_string(),
-        }
+        })
     }
 }

@@ -241,6 +241,10 @@ i, b, strong {
     padding-right: 2em;
 }
 
+.gray {
+    color: gray;
+}
+
 /*  Scrollbar */
 
 ::-webkit-scrollbar {
@@ -270,6 +274,9 @@ i, b, strong {
 }
 
 @keyframes slide-up {
+    50% {
+        opacity: 0.15;
+    }
     100% {
         transform: translateY(0%);
         opacity: 1;
@@ -277,8 +284,30 @@ i, b, strong {
 }
 
 @-webkit-keyframes slide-up {
+    50% {
+        opacity: 0.15;
+    }
     100% {
         -webkit-transform: translateY(0%);
+        opacity: 1;
+    }
+}
+
+/* Fading animation */
+
+.fade-in {
+    animation: fade-in 1s forwards;
+    -webkit-animation: fade-in 1s forwards;
+}
+
+@keyframes fade-in {
+    100% {
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes fade-in {
+    100% {
         opacity: 1;
     }
 }

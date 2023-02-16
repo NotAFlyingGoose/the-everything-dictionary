@@ -1,12 +1,14 @@
 {% extends "subpage.html" %}
 
+{% block title %}{{ word }} | {% endblock %}
+
 {% block head %}
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5229740966840782"
      crossorigin="anonymous"></script>
 {% endblock %}
 
 {% block content %}
-    <h1>{{ title }}</h1>
+    <h1>{{ word }}</h1>
     {% if is_capital %}
     <p>Not the right word? Try changing the capitalization</p>
     {% endif %}
@@ -14,7 +16,7 @@
     </div>
     
     <script>
-        let word = '{{ title }}';
+        let word = '{{ word }}';
         
         let appendEl = function(into, tag, text, { id='', clazz='' } = {}) {
             let el = document.createElement(tag);
@@ -46,6 +48,12 @@
             console.log(data);
 
             let word_container = $('#word')[0];
+
+            if (Object.keys(data).length === 0) {
+                appendEl(word_container, "h3", "couldn't find that word", { clazz: 'gray' });
+                word_container.className += 'fade-in';
+                return;
+            }
 
             let word_left = createEl('div', { clazz: 'word-column' });
             let word_right = createEl('div', { clazz: 'word-column' });

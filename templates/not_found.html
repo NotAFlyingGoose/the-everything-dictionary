@@ -1,0 +1,22 @@
+{% extends "subpage.html" %}
+
+{% block content %}
+    <h1 class="gray" style="font-size: 7em;">{{ emoji }}</h1>
+    <h2 class="gray">Couldn't find that</h2>
+
+    <style>
+        body {
+            height: 100%;
+        }
+
+        #content {
+            text-align: center;
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+        }
+    </style>
+{% endblock %}

@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path, time::{UNIX_EPOCH, SystemTime}};
 
 use askama::Template;
 use rocket::{fs::NamedFile, response::content::{RawHtml, RawJson}};
@@ -37,11 +37,10 @@ pub(crate) async fn api(mut db: Connection<Redis>, word: String) -> Option<RawJs
     let db_key = format!("word:{}", &word);
 
     let word_data = {
-        // if !db.exists(&db_key).await.unwrap_or_else(|err| {
-        //     println!("exists error: {}", err);
-        //     false
-        // })
-        if true {
+        if !db.exists(&db_key).await.unwrap_or_else(|err| {
+            println!("exists error: {}", err);
+            false
+        }) {
             let new_word = Word::scrape(&word).await?;
 
             let json = serde_json::to_string(&new_word).unwrap_or_else(|err| {
@@ -57,7 +56,35 @@ pub(crate) async fn api(mut db: Connection<Redis>, word: String) -> Option<RawJs
             
             json
         } else {
-            db.get(&db_key).await.ok()?
+            let json: String = db.get(&db_key).await.ok()?;
+
+            let old_word: Word = serde_json::from_str(&json).ok()?;
+            let last_updated: u128 = old_word.last_updated.parse().ok()?;
+            let now = SystemTime::now();
+            let now = now
+                .duration_since(UNIX_EPOCH)
+                .expect("Time went backwards");
+            let update_period = 1000 * 60 * 60 * 24; // one full day
+
+            if now.as_millis() - last_updated > update_period {
+                println!("updating entry");
+                let new_word = Word::scrape(&word).await?;
+
+                let json = serde_json::to_string(&new_word).unwrap_or_else(|err| {
+                    println!("Error parsing word into json: {}", err);
+                    "{}".to_string()
+                });
+    
+                db.set(&db_key, &json)
+                    .await
+                    .unwrap_or_else(|err| {
+                        println!("hset error: {}", err);
+                    });
+                
+                json
+            } else {
+                json
+            }
         }
     };
 

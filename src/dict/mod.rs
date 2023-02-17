@@ -4,11 +4,11 @@ mod scrape;
 
 use std::{fmt::Display, time::{SystemTime, UNIX_EPOCH}};
 
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
 pub(crate) use scrape::*;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct Definition {
     pub(crate) part_of_speech: String,
     pub(crate) meaning: String,
@@ -25,13 +25,13 @@ impl Display for Definition {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct Origin {
     pub(crate) part_of_speech: String,
     pub(crate) origin: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub(crate) struct Word {
     pub(crate) overview: Vec<String>,
     pub(crate) vocab_defs: Vec<Definition>,

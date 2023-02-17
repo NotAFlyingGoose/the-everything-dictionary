@@ -1,4 +1,5 @@
 
+mod restrictor;
 mod scrape;
 
 use std::{fmt::Display, time::{SystemTime, UNIX_EPOCH}};

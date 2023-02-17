@@ -2,7 +2,7 @@
 use ego_tree::NodeRef;
 use scraper::{Html, Selector, ElementRef, Node, node::Text};
 
-use super::{Origin, Definition};
+use super::{Origin, Definition, restrictor::RESTRICTOR};
 
 macro_rules! find {
     ($element: expr, $selector: literal) => {
@@ -339,6 +339,8 @@ pub(crate) async fn scrape_etym(word: &str) -> Option<(Vec<Origin>, &str)> {
 }
 
 pub(crate) async fn scrape_stock(word: &str) -> Option<(Vec<String>, &str)> {
+    if RESTRICTOR.is_restricted(word.to_lowercase().as_str()) { return None }
+
     let body = reqwest::get(&format!(
         "{}://{}/search?k={}",
         PROTOCOL,
@@ -357,7 +359,11 @@ pub(crate) async fn scrape_stock(word: &str) -> Option<(Vec<String>, &str)> {
 
     let sel = Selector::parse(".search-result-cell").unwrap();
     for img_div in doc.select(&sel) {
-        imgs.push(find!(img_div, "img")?.value().attr("src")?.to_string());
+        let img_el = find!(img_div, "img")?.value();
+
+        if RESTRICTOR.is_restricted(img_el.attr("alt")?.to_lowercase().as_str()) { continue }
+
+        imgs.push(img_el.attr("src")?.to_string());
 
         if imgs.len() == 6 {
             break

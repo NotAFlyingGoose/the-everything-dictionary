@@ -37,10 +37,11 @@ pub(crate) async fn api(mut db: Connection<Redis>, word: String) -> Option<RawJs
     let db_key = format!("word:{}", &word);
 
     let word_data = {
-        if !db.exists(&db_key).await.unwrap_or_else(|err| {
-            println!("exists error: {}", err);
-            false
-        }) {
+        // if !db.exists(&db_key).await.unwrap_or_else(|err| {
+        //     println!("exists error: {}", err);
+        //     false
+        // })
+        if true {
             let new_word = Word::scrape(&word).await?;
 
             let json = serde_json::to_string(&new_word).unwrap_or_else(|err| {

@@ -8,6 +8,10 @@ html {
 	font-weight: light;
 }
 
+body {
+    overflow-y: scroll;
+}
+
 #content {
 	margin-left: 10%;
 	margin-right: 10%;
@@ -245,6 +249,32 @@ i, b, strong {
     color: gray;
 }
 
+.bar-item {
+    font-family: 'Lora', serif;
+	font-size: 1.15em;
+    color: lightgray;
+	border-radius: 2em;
+	padding: 0.75em;
+	margin: 0em 0.5em;
+	background-color: #444444;
+    border: none;
+}
+
+.bar-item:hover {
+	background-color: gray;
+    color: white;
+}
+
+.bar-selected {
+	background-color: salmon;
+    color: white;
+}
+
+.bar-selected:hover {
+	background-color: salmon;
+    color: white;
+}
+
 /*  Scrollbar */
 
 ::-webkit-scrollbar {
@@ -301,12 +331,18 @@ i, b, strong {
 }
 
 @keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
     100% {
         opacity: 1;
     }
 }
 
 @-webkit-keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
     100% {
         opacity: 1;
     }

@@ -1,0 +1,3 @@
+
+[default.databases.redis_pool]
+url = "redis://default:NKxE1Al7aHVdIN4v0hUa@containers-us-west-180.railway.app:7131"

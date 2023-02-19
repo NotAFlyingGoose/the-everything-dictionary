@@ -28,6 +28,7 @@ h1 {
 	line-height: 150%;
 	font-weight: normal;
     color: salmon;
+    margin: 0;
 }
 
 h2 {
@@ -46,8 +47,7 @@ h3 {
 }
 
 h4 {
-	font-family: 'Lora', serif;
-	font-size: 1.15em;
+	font-size: 1em;
 	line-height: 175%;
 	font-weight: normal;
 }

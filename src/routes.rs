@@ -64,7 +64,7 @@ pub(crate) async fn api(mut db: Connection<Redis>, word: String) -> Option<RawJs
             let now = now
                 .duration_since(UNIX_EPOCH)
                 .expect("Time went backwards");
-            let update_period = 1000 * 60 * 60 * 24; // one full day
+            let update_period = 1000 * 60 * 60 * 24 * 30; // one full month
 
             if now.as_millis() - last_updated > update_period {
                 println!("updating entry");

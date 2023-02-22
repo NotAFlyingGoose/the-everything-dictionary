@@ -121,12 +121,8 @@ impl Word {
     }
 }
 
-pub(crate) async fn update_word(mut db: Connection<Redis>, db_key: &str, word: &str) -> String {
-    let new_word = if let Some(w) = Word::scrape(word).await {
-        w
-    } else {
-        return "{}".to_string()
-    };
+pub(crate) async fn update_word(mut db: Connection<Redis>, db_key: &str, word: &str) -> Option<String> {
+    let new_word = Word::scrape(word).await?;
 
     let json = serde_json::to_string(&new_word).unwrap_or_else(|err| {
         println!("Error parsing word into json: {}", err);
@@ -139,5 +135,5 @@ pub(crate) async fn update_word(mut db: Connection<Redis>, db_key: &str, word: &
             println!("hset error: {}", err);
         });
     
-    json
+    Some(json)
 }

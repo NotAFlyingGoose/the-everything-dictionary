@@ -56,7 +56,7 @@ pub(crate) async fn scrape_vocab(word: &str) -> Option<(Option<String>, Option<S
 
     let short_overview = Some(el_to_string_with(*find!(word_area, ".short")?, &[], true, &[INCLUDED_TAGS, &["i"]].concat()))
         .filter(|s| !s.is_empty());
-    let long_overview = Some(el_to_string_with(*find!(word_area, ".short")?, &[], true, &[INCLUDED_TAGS, &["i"]].concat()))
+    let long_overview = Some(el_to_string_with(*find!(word_area, ".long")?, &[], true, &[INCLUDED_TAGS, &["i"]].concat()))
         .filter(|s| !s.is_empty());
 
     let ol = find!(find!(doc, ".word-definitions")?, "ol")?;

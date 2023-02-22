@@ -80,7 +80,7 @@ impl Word {
         if !source.is_empty() { sources.push(source.to_string()) }
 
         // check for no defs
-        if vocab_defs.is_empty() && wiki_defs.is_empty() {
+        if vocab_defs.is_empty() && macmillan_defs.is_empty()  && wiki_defs.is_empty() {
             return None;
         }
         

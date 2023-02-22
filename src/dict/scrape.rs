@@ -109,7 +109,7 @@ pub(crate) async fn scrape_macmillan(word: &str) -> Option<(Vec<Vec<Definition>>
         .first_child()?
         .first_child()?);
     if real_word != word {
-        println!("the real word was {}", real_word);
+        return None;
     }
 
     let definition_area = word_area.children()

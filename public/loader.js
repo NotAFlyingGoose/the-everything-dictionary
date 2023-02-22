@@ -52,7 +52,11 @@ fetch('/api/define/' + word).then(function (response) {
     let word_container = $('#word')[0];
 
     if (Object.keys(data).length === 0) {
-        appendEl(word_container, "h3", { inner: "couldn't find that word", clazz: 'gray' });
+        let div = createEl('div');
+        appendEl(div, "h3", { inner: "couldn't find that word", clazz: 'gray', style: 'padding: 25% 0' });
+        appendEl(div, 'p', { inner: 'Try removing endings such as -ed or -s,<br>or try changing the capitilazation' });
+        appendEl(div, 'p', { inner: 'Phrases might be harder to find, and there\'s no autocorrect yet' });
+        word_container.appendChild(div);
         word_container.className += 'fade-in';
         return;
     }
@@ -61,7 +65,7 @@ fetch('/api/define/' + word).then(function (response) {
     let word_right = createEl('div', { clazz: 'word-column' });
 
     if (data['overview']) {
-        let overview = createEl('div', { id: 'wordOverview' });
+        let overview = createEl('div', { id: 'word-overview' });
 
         let tag = 'h3';
         for (raw_line of data['overview']) {
@@ -114,7 +118,7 @@ fetch('/api/define/' + word).then(function (response) {
                     if (entries.length !== 0)
                         appendEl(entries[entries.length - 1], 'br')
                     appendEl(entries[entries.length - 1], 'span', {
-                        clazz: 'part_of_speech ' + sense['part_of_speech'],
+                        clazz: 'part-of-speech ' + sense['part_of_speech'],
                         inner: sense['part_of_speech']
                     });
                     last_pos = sense['part_of_speech'];
@@ -122,7 +126,7 @@ fetch('/api/define/' + word).then(function (response) {
 
                 let li = createEl('li', { clazz: li_clazz });
 
-                let def_content = createEl('div', { clazz: 'def_content' });
+                let def_content = createEl('div', { clazz: 'def-content' });
 
                 appendEl(def_content, 'span', { clazz: 'meaning', inner: decodeURIComponent(sense['meaning']) })
 
@@ -194,7 +198,7 @@ fetch('/api/define/' + word).then(function (response) {
 
             if (origin['part_of_speech']) {
                 appendEl(li, 'span', {
-                    clazz: 'part_of_speech ' + origin['part_of_speech'],
+                    clazz: 'part-of-speech ' + origin['part_of_speech'],
                     inner: origin['part_of_speech']
                 });
             }

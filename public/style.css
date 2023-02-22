@@ -13,12 +13,23 @@ body {
     overflow-y: scroll;
 }
 
+#word {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	margin-left: auto;
+	margin-right: auto;
+    transform: translateY(100%);
+    -webkit-transform: translateY(100%);
+    opacity: 0;
+}
+
 #content {
 	margin-left: 10%;
 	margin-right: 10%;
 }
 
-#wordOverview {
+#word-overview {
 	width: 80%;
 	margin-left: 2em;
 }
@@ -100,14 +111,14 @@ li.lettered::before {
     direction: rtl;
 }
 
-.def_content {
+.def-content {
 	padding-bottom: 0.5em;
 	line-height: 150%;
     display: inline-block;
     vertical-align: top;
 }
 
-.part_of_speech {
+.part-of-speech {
     font-size: 1.5em;
 	border-radius: 15px;
 	padding: 0px 6px 3px 6px;
@@ -242,17 +253,6 @@ a {
     color: lightgray;
 }
 
-#word {
-	width: 100%;
-	display: flex;
-	justify-content: space-between;
-	margin-left: auto;
-	margin-right: auto;
-    transform: translateY(100%);
-    -webkit-transform: translateY(100%);
-    opacity: 0;
-}
-
 .word-column {
 	max-width: 50%;
 	height: auto;
@@ -383,17 +383,21 @@ i, b, strong {
 @keyframes fade-in {
     0% {
         opacity: 0;
+        transform: translateY(0%);
     }
     100% {
         opacity: 1;
+        transform: translateY(0%);
     }
 }
 
 @-webkit-keyframes fade-in {
     0% {
         opacity: 0;
+        -webkit-transform: translateY(0%);
     }
     100% {
         opacity: 1;
+        -webkit-transform: translateY(0%);
     }
 }

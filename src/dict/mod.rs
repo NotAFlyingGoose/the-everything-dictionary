@@ -4,9 +4,12 @@ mod scrape;
 
 use std::{fmt::Display, time::{SystemTime, UNIX_EPOCH}};
 
+use rocket_db_pools::{Connection, deadpool_redis::redis::AsyncCommands};
 use serde::{Serialize, Deserialize};
 
 pub(crate) use scrape::*;
+
+use crate::Redis;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct Definition {
@@ -35,6 +38,7 @@ pub(crate) struct Origin {
 pub(crate) struct Word {
     pub(crate) overview: Vec<String>,
     pub(crate) vocab_defs: Vec<Definition>,
+    pub(crate) macmillan_defs: Vec<Vec<Definition>>,
     pub(crate) wiki_defs: Vec<Definition>,
 
     pub(crate) etym_origins: Vec<Origin>,
@@ -59,6 +63,13 @@ impl Word {
         let mut overview = Vec::new();
         if let Some(short) = short { overview.push(short) }
         if let Some(long) = long { overview.push(long) }
+        if !source.is_empty() { sources.push(source.to_string()) }
+
+        let (macmillan_defs, source) = 
+            scrape_macmillan(&word)
+                .await
+                .unwrap_or((Vec::new(), ""));
+
         if !source.is_empty() { sources.push(source.to_string()) }
         
         let (wiki_origins, wiki_defs, source) = 
@@ -95,6 +106,7 @@ impl Word {
         Some(Word {
             overview,
             vocab_defs,
+            macmillan_defs,
             wiki_defs,
 
             wiki_origins,
@@ -107,4 +119,21 @@ impl Word {
             last_updated: now.as_millis().to_string(),
         })
     }
+}
+
+pub(crate) async fn update_word(mut db: Connection<Redis>, db_key: &str, word: &str) -> String {
+    let new_word = Word::scrape(word).await.unwrap();
+
+    let json = serde_json::to_string(&new_word).unwrap_or_else(|err| {
+        println!("Error parsing word into json: {}", err);
+        "{}".to_string()
+    });
+
+    db.set(db_key, &json)
+        .await
+        .unwrap_or_else(|err| {
+            println!("hset error: {}", err);
+        });
+    
+    json
 }

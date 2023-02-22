@@ -42,7 +42,7 @@ let openDict = function (evt, dictName) {
 
 let start_time = Date.now();
 
-fetch('/api/' + word).then(function (response) {
+fetch('/api/define/' + word).then(function (response) {
     return response.json();
 }).then(function (data) {
     console.log('fetched in ' + (Date.now() - start_time) / 1000 + 's');
@@ -84,6 +84,7 @@ fetch('/api/' + word).then(function (response) {
         }
     }
 
+    add_tab('Macmillan', 'Macmillan', data['macmillan_defs']);
     add_tab('Vocabulary.com', 'Vocab', data['vocab_defs']);
     add_tab('Wikitionary', 'Wiki', data['wiki_defs']);
     add_tab('Urban Dictionary', 'Urban', data['urban_defs']);
@@ -107,32 +108,49 @@ fetch('/api/' + word).then(function (response) {
         let last_pos = '';
 
         for (let def of definitions) {
-            if (entries.length === 0 || last_pos !== def['part_of_speech']) {
-                entries.push(createEl('ol', { clazz: 'word-entry' }));
-                if (entries.length !== 0)
-                    appendEl(entries[entries.length - 1], 'br')
-                appendEl(entries[entries.length - 1], 'span', {
-                    clazz: 'part_of_speech ' + def['part_of_speech'],
-                    inner: def['part_of_speech']
-                });
-                last_pos = def['part_of_speech'];
+            let appendSense = function (sense, li_clazz) {
+                if (entries.length === 0 || last_pos !== sense['part_of_speech']) {
+                    entries.push(createEl('ol', { clazz: 'word-entry' }));
+                    if (entries.length !== 0)
+                        appendEl(entries[entries.length - 1], 'br')
+                    appendEl(entries[entries.length - 1], 'span', {
+                        clazz: 'part_of_speech ' + sense['part_of_speech'],
+                        inner: sense['part_of_speech']
+                    });
+                    last_pos = sense['part_of_speech'];
+                }
+
+                let li = createEl('li', { clazz: li_clazz });
+
+                let def_content = createEl('div', { clazz: 'defContent' });
+
+                appendEl(def_content, 'span', { clazz: 'meaning', inner: decodeURIComponent(sense['meaning']) })
+
+                li.appendChild(def_content);
+
+                let examples = createEl('ul', { clazz: 'examples' });
+                for (let example of sense['examples']) {
+                    appendEl(examples, 'li', { clazz: 'example', inner: decodeURIComponent(example) })
+                }
+                li.appendChild(examples);
+
+                return li;
+            };
+
+            if (Array.isArray(def)) {
+                let first = appendSense(def[0], 'numbered');
+                let subsenses = createEl('ol');
+                def.shift()
+                for (let subsense of def) {
+                    let sub_li = appendSense(subsense, 'lettered');
+                    subsenses.appendChild(sub_li);
+                }
+                first.appendChild(subsenses);
+                entries[entries.length - 1].appendChild(first);
+            } else {
+                let first = appendSense(def, 'numbered');
+                entries[entries.length - 1].appendChild(first);
             }
-
-            let li = createEl('li', { clazz: 'numbered' });
-
-            let def_content = createEl('div', { clazz: 'defContent' });
-
-            appendEl(def_content, 'span', { clazz: 'meaning', inner: decodeURIComponent(def['meaning']) })
-
-            li.appendChild(def_content);
-
-            let examples = createEl('ul', { clazz: 'examples' });
-            for (let example of def['examples']) {
-                appendEl(examples, 'li', { clazz: 'example', inner: decodeURIComponent(example) })
-            }
-            li.appendChild(examples);
-
-            entries[entries.length - 1].appendChild(li);
         }
 
         for (entry of entries) {
@@ -142,6 +160,7 @@ fetch('/api/' + word).then(function (response) {
         word_left.appendChild(defs_div);
     }
 
+    add_definitions('Macmillan', data['macmillan_defs']);
     add_definitions('Vocab', data['vocab_defs']);
     add_definitions('Wiki', data['wiki_defs']);
     add_definitions('Urban', data['urban_defs']);
@@ -199,18 +218,15 @@ fetch('/api/' + word).then(function (response) {
 
     word_right.appendChild(origin_div);
 
-    word_left.innerHTML += `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5229740966840782" crossorigin="anonymous"><\/script><!-- Left --><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5229740966840782" data-ad-slot="3795749516" data-ad-format="auto" data-full-width-responsive="true"><\/ins><script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script>`;
-    word_right.innerHTML += `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5229740966840782" crossorigin="anonymous"><\/script><ins class="adsbygoogle" style="display:block;" data-ad-client="ca-pub-5229740966840782"data-ad-slot="8201898383" data-ad-format="auto" data-full-width-responsive="true"><\/ins><script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script>`;
-
     let sources = createEl('div', { clazz: 'sources' });
     appendEl(sources, 'h4', { inner: 'Sources' })
     for (let source of data['sources']) {
         appendEl(sources, 'p', { inner: source });
     }
     appendEl(sources, 'br');
-    appendEl(sources, 'br');
-    appendEl(sources, 'p', { inner: 'This site is kept up with your ads. Thank You' });
-    appendEl(sources, 'br');
+    appendEl(sources, 'p', { inner: 'Not the right word?' });
+    appendEl(sources, 'p', { inner: 'Try removing endings such as -ed or -s,<br>or try changing the capitilazation' });
+    appendEl(sources, 'p', { inner: 'Phrases might be harder to find, and there\'s no autocorrect yet' });
     appendEl(sources, 'br');
     appendEl(sources, 'p', { inner: 'Have a suggestion? Send it to <a href="https://github.com/NotAFlyingGoose/" target="_blank" rel="noopener noreferrer">NotAFlyingGoose</a>' });
     word_right.appendChild(sources);

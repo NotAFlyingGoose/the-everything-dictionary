@@ -4,9 +4,6 @@
 
 {% block content %}
     <h1>{{ word }}</h1>
-    {% if is_capital %}
-    <p>Not the right word? Try changing the capitalization</p>
-    {% endif %}
     <div id="word"></div>
     
     <script src="/loader.js" data-word="{{ word }}"></script>

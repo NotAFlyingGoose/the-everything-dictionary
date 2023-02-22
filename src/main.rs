@@ -13,7 +13,7 @@ pub(crate) struct Redis(deadpool_redis::Pool);
 
 #[launch]
 fn rocket() -> _ {
-    dotenv::dotenv();
+    let _dotenv = dotenv::dotenv();
     rocket::build()
         .mount("/", routes![routes::res, routes::api, routes::index, routes::define])
         .register("/", catchers![not_found::general_not_found])

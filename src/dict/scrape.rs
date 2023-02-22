@@ -1,5 +1,6 @@
 
 use ego_tree::NodeRef;
+use regex::Regex;
 use scraper::{Html, Selector, ElementRef, Node, node::Text};
 
 use super::{Origin, Definition, restrictor::RESTRICTOR};
@@ -13,9 +14,20 @@ macro_rules! find {
     };
 }
 
+macro_rules! loop_find_all {
+    ($element: expr, $selector: literal, $name: ident, $for_each: expr) => {
+        {
+            let sel = Selector::parse($selector).unwrap();
+            for $name in $element.select(&sel) {
+                $for_each
+            }
+        }
+    };
+}
+
 const PROTOCOL: &str = "https";
 const VOCAB_URL_BASE: &str = "www.vocabulary.com";
-const SLANG_URL_BASE: &str = "www.urbandictionary.com";
+const MACMILLAN_URL_BASE: &str = "www.macmillandictionary.com";
 const WIKI_URL_BASE: &str = "en.wiktionary.org";
 const ETYM_URL_BASE: &str = "www.etymonline.com";
 const STOCK_URL_BASE: &str = "stock.adobe.com";
@@ -42,17 +54,16 @@ pub(crate) async fn scrape_vocab(word: &str) -> Option<(Option<String>, Option<S
         return None;
     }
 
-    let short_overview = Some(el_to_string(*find!(word_area, ".short")?))
+    let short_overview = Some(el_to_string_with(*find!(word_area, ".short")?, &[], true, &[INCLUDED_TAGS, &["i"]].concat()))
         .filter(|s| !s.is_empty());
-    let long_overview = Some(el_to_string(*find!(word_area, ".long")?))
+    let long_overview = Some(el_to_string_with(*find!(word_area, ".short")?, &[], true, &[INCLUDED_TAGS, &["i"]].concat()))
         .filter(|s| !s.is_empty());
 
     let ol = find!(find!(doc, ".word-definitions")?, "ol")?;
 
     let mut definitions = Vec::new();
 
-    let sel = Selector::parse("li").unwrap();
-    for item in ol.select(&sel) {
+    loop_find_all!(ol, "li", item, {
         let def_area = find!(item, ".definition")?;
 
         let part_of_speech = el_to_string(*find!(def_area, ".pos-icon")?);
@@ -61,26 +72,25 @@ pub(crate) async fn scrape_vocab(word: &str) -> Option<(Option<String>, Option<S
 
         let mut examples = Vec::new();
 
-        let sel = Selector::parse(".example").unwrap();
-        for example in item.select(&sel) {
+        loop_find_all!(item, ".example", example, {
             examples.push(el_to_string(*example).replace("\n", ""));
-        }
+        });
 
         definitions.push(Definition {
             part_of_speech,
             meaning,
             examples,
         });
-    }
+    });
 
     Some((short_overview, long_overview, definitions, VOCAB_URL_BASE))
 }
 
-pub(crate) async fn scrape_slang(word: &str) -> Option<(Vec<Definition>, &str)> {
+pub(crate) async fn scrape_macmillan(word: &str) -> Option<(Vec<Vec<Definition>>, &str)> {
     let body = reqwest::get(&format!(
-        "{}://{}/define.php?term={}",
+        "{}://{}/us/dictionary/american/{}",
         PROTOCOL,
-        SLANG_URL_BASE,
+        MACMILLAN_URL_BASE,
         word,
     ))
         .await
@@ -91,29 +101,67 @@ pub(crate) async fn scrape_slang(word: &str) -> Option<(Vec<Definition>, &str)> 
 
     let doc = Html::parse_document(&body);
 
+    let word_area = find!(doc, ".left-content")?;
+
+    let real_word = el_to_string(word_area
+        .first_child()?
+        .first_child()?
+        .first_child()?
+        .first_child()?);
+    if real_word != word {
+        println!("the real word was {}", real_word);
+    }
+
+    let definition_area = word_area.children()
+        .find(|child| child.value().is_element() 
+            && child.value().as_element().unwrap().attrs.is_empty())?
+        .children()
+        .find(|child| child.value().is_element() 
+            && child.value().as_element().unwrap().attrs.is_empty())?;
+    
+    let ol = find!(ElementRef::wrap(definition_area).unwrap(), "ol")?;
+
     let mut definitions = Vec::new();
 
-    let sel = Selector::parse(".definition").unwrap();
-    for item in doc.select(&sel) {
-        let defined_word = el_to_string(*find!(item, ".word")?);
-        if defined_word != word { continue }
+    loop_find_all!(ol, "li", item, {
+        let sense_body = if let Some(el) = find!(item, ".SENSE-BODY") {
+            el
+        } else {
+            continue;
+        };
 
-        let meaning = el_to_string(*find!(item, ".meaning")?);
+        let mut sense = Vec::new();
 
-        let example = el_to_string(*find!(item, ".example")?);
+        loop_find_all!(sense_body, ".dflex", body, {
+            let meaning = if let Some(el) = find!(body, ".DEFINITION") {
+                el
+            } else {
+                continue;
+            };
 
-        definitions.push(Definition {
-            part_of_speech: "slang".to_string(),
-            meaning,
-            examples: vec![example],
+            let meaning = el_to_string_with(*meaning, &["a", "span"], false, INCLUDED_TAGS);
+
+            let mut examples = Vec::new();
+            if let Some(examples_el) = find!(body, ".EXAMPLES") {
+                for example in examples_el.children() {
+                    if !example.value().is_element() || example.value().as_element().unwrap().name() != "p" {
+                        continue;
+                    }
+                    examples.push(el_to_string_with(example, &["a", "span"], false, INCLUDED_TAGS).replace("\n", ""));
+                }
+            }
+
+            sense.push(Definition {
+                part_of_speech: "noun".to_string(),
+                meaning,
+                examples,
+            });
         });
-    }
 
-    if definitions.is_empty() {
-        None
-    } else {
-        Some((definitions, SLANG_URL_BASE))
-    }
+        definitions.push(sense);
+    });
+
+    Some((definitions, MACMILLAN_URL_BASE))
 }
 
 pub(crate) async fn scrape_wiki(word: &str) -> Option<(Vec<Origin>, Vec<Definition>, &str)> {
@@ -162,7 +210,7 @@ pub(crate) async fn scrape_wiki(word: &str) -> Option<(Vec<Origin>, Vec<Definiti
                 for grandchild in child.children() {
                     if !grandchild.value().is_element() { continue }
 
-                    let meaning = el_to_string_with(grandchild, &["span"], false);
+                    let meaning = el_to_string_with(grandchild, &["a"], false, &[INCLUDED_TAGS, &["span"]].concat());
                     if meaning.is_empty() { continue }
 
                     let mut examples = Vec::new();
@@ -171,7 +219,7 @@ pub(crate) async fn scrape_wiki(word: &str) -> Option<(Vec<Origin>, Vec<Definiti
                     if examples_list.is_some() {
                         for el in examples_list.unwrap().children() {
                             if !el.value().is_element() || el.value().as_element().unwrap().name() != "dd" { continue }
-                            examples.push(el_to_string_with_i(el, &["span"], true, false))
+                            examples.push(el_to_string_with(el, &["span"], true, INCLUDED_TAGS))
                         }
                     }
 
@@ -208,7 +256,7 @@ pub(crate) async fn scrape_wiki(word: &str) -> Option<(Vec<Origin>, Vec<Definiti
                     working_origin_p.push_str("<br>");
                 }
 
-                working_origin_p.push_str(&el_to_string_with(child, &["span"], false));
+                working_origin_p.push_str(&el_to_string_with(child, &["span"], false, INCLUDED_TAGS));
 
                 first_def_title.clear();
             }
@@ -302,12 +350,16 @@ pub(crate) async fn scrape_etym(word: &str) -> Option<(Vec<Origin>, &str)> {
             break;
         }
         
-        let part_of_speech = match word_name_text.iter().last()? as &str {
-            "(n.)" | "(n.1)" | "(n.2)" => "noun",
-            "(v.)" | "(v.1)" | "(v.2)" => "verb",
-            "(adj.)" | "(adj.1)" | "(adj.2)" => "adjective",
-            "(adv.)" | "(adv.1)" | "(adv.2)" => "adverb",
-            "(interj.)" | "(interj.1)" | "(interj.2)" => "interjection",
+        let re = Regex::new(r"[0-9]+").unwrap();
+        let part_of_speech = match re.replace_all(word_name_text.iter().last()?, "")
+            .to_string().as_str() {
+            "(n.)" => "noun",
+            "(v.)" => "verb",
+            "(adj.)" => "adjective",
+            "(adv.)" => "adverb",
+            "(interj.)" => "interjection",
+            "(prep.)" => "preposition",
+            "(pron.)" => "pronoun",
             text if text.trim().is_empty() => "",
             text => {
                 println!("NOT YET IMPLEMENTED: `{}` ({:?})", text, text.as_bytes());
@@ -317,13 +369,12 @@ pub(crate) async fn scrape_etym(word: &str) -> Option<(Vec<Origin>, &str)> {
 
         let mut origin = String::new();
 
-        let sel = Selector::parse("p").unwrap();
-        for p in find!(ElementRef::wrap(word_name.parent()?)?, "section")?.select(&sel) {
+        loop_find_all!(find!(ElementRef::wrap(word_name.parent()?)?, "section")?, "p", p, {
             if !origin.is_empty() {
                 origin.push_str("<br>");
             }
-            origin.push_str(&&el_to_string_with(*p, &["span", "a"], true));
-        }
+            origin.push_str(&&el_to_string_with(*p, &["span", "a"], true, INCLUDED_TAGS));
+        });
 
         origins.push(Origin {
             part_of_speech,
@@ -357,8 +408,7 @@ pub(crate) async fn scrape_stock(word: &str) -> Option<(Vec<String>, &str)> {
 
     let mut imgs = Vec::new();
 
-    let sel = Selector::parse(".search-result-cell").unwrap();
-    for img_div in doc.select(&sel) {
+    loop_find_all!(doc, ".search-result-cell", img_div, {
         let img_el = find!(img_div, "img")?.value();
 
         if RESTRICTOR.is_restricted(img_el.attr("alt")?.to_lowercase().as_str()) { continue }
@@ -368,7 +418,7 @@ pub(crate) async fn scrape_stock(word: &str) -> Option<(Vec<String>, &str)> {
         if imgs.len() == 6 {
             break
         }
-    }
+    });
 
     if imgs.is_empty() {
         None
@@ -379,7 +429,7 @@ pub(crate) async fn scrape_stock(word: &str) -> Option<(Vec<String>, &str)> {
 
 // utility functions for getting text from the dom
 
-const PASSED_TAGS: &[&str] = &[
+const INCLUDED_TAGS: &[&str] = &[
     "b",
     "strong",
     "em",
@@ -389,56 +439,40 @@ const PASSED_TAGS: &[&str] = &[
 ];
 
 fn el_to_string(node: NodeRef<Node>) -> String {
-    el_to_string_with_i(node, &[], false, true)
+    el_to_string_with(node, &[], true, INCLUDED_TAGS)
 }
 
-fn el_to_string_with(node: NodeRef<Node>, accepted: &[&str], add_i: bool) -> String {
-    el_to_string_with_i(node, accepted, add_i, true)
-}
-
-fn el_to_string_with_i(node: NodeRef<Node>, accepted: &[&str], add_i: bool, include_i: bool) -> String {
+fn el_to_string_with(node: NodeRef<Node>, pass_through: &[&str], pass_replace: bool, included: &[&str]) -> String {
     let mut res = String::new();
-    let mut last_a = false;
     for item in node.children() {
         match item.value() {
             scraper::Node::Text(text) if !text.trim().is_empty() => {
-                last_a = false;
                 res.push_str(text);
-            },
-            scraper::Node::Element(el) if PASSED_TAGS.contains(&el.name()) => {
-                last_a = false;
+            }
+            scraper::Node::Element(el) if included.contains(&el.name()) => {
                 res.push('<'); res.push_str(el.name()); res.push('>');
-                res.push_str(&el_to_string_with_i(item, accepted, add_i, include_i));
+                res.push_str(&el_to_string_with(item, pass_through, pass_replace, included));
                 res.push_str("</"); res.push_str(el.name()); res.push('>');
-            },
-            scraper::Node::Element(el) if accepted.contains(&el.name()) => {
-                last_a = false;
-                if add_i {
+                res.push(' ');
+            }
+            scraper::Node::Element(el) if pass_through.contains(&el.name()) => {
+                if pass_replace {
                     res.push_str("<i>");
                 }
-                res.push_str(&el_to_string_with_i(item, accepted, add_i, include_i));
-                if add_i {
+                res.push_str(&el_to_string_with(item, pass_through, pass_replace, included));
+                if pass_replace {
                     res.push_str("</i>");
                 }
-            },
-            scraper::Node::Element(el) if el.name() == "a" => {
-                if last_a { res.push(' ') }
-                last_a = true;
-                res.push_str(&el_to_string_with_i(item, accepted, add_i, include_i));
-            },
-            scraper::Node::Element(el) if el.name() == "i" => {
-                if last_a { res.push(' ') }
-                last_a = true;
-                if include_i {
-                    res.push_str("<i>");
-                }
-                res.push_str(&el_to_string_with_i(item, accepted, add_i, include_i));
-                if include_i {
-                    res.push_str("</i>");
-                }
-            },
+                res.push(' ');
+            }
             _ => {},
         }
     }
-    res.trim().to_string()
+    res.trim()
+        .replace("  ", " ")
+        .replace(" ,", ",")
+        .replace(" !", "!")
+        .replace(" ?", "?")
+        .replace(" .", ".")
+        .replace(" )", ")")
 }

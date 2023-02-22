@@ -122,7 +122,7 @@ fetch('/api/define/' + word).then(function (response) {
 
                 let li = createEl('li', { clazz: li_clazz });
 
-                let def_content = createEl('div', { clazz: 'defContent' });
+                let def_content = createEl('div', { clazz: 'def_content' });
 
                 appendEl(def_content, 'span', { clazz: 'meaning', inner: decodeURIComponent(sense['meaning']) })
 
@@ -219,14 +219,14 @@ fetch('/api/define/' + word).then(function (response) {
     word_right.appendChild(origin_div);
 
     let sources = createEl('div', { clazz: 'sources' });
-    appendEl(sources, 'h4', { inner: 'Sources' })
+    appendEl(sources, 'h4', { clazz: 'fancy', inner: 'Not the right word?' })
+    appendEl(sources, 'p', { inner: 'Try removing endings such as -ed or -s,<br>or try changing the capitilazation' });
+    appendEl(sources, 'p', { inner: 'Phrases might be harder to find, and there\'s no autocorrect yet' });
+    appendEl(sources, 'br');
+    appendEl(sources, 'h4', { clazz: 'fancy', inner: 'Sources' })
     for (let source of data['sources']) {
         appendEl(sources, 'p', { inner: source });
     }
-    appendEl(sources, 'br');
-    appendEl(sources, 'p', { inner: 'Not the right word?' });
-    appendEl(sources, 'p', { inner: 'Try removing endings such as -ed or -s,<br>or try changing the capitilazation' });
-    appendEl(sources, 'p', { inner: 'Phrases might be harder to find, and there\'s no autocorrect yet' });
     appendEl(sources, 'br');
     appendEl(sources, 'p', { inner: 'Have a suggestion? Send it to <a href="https://github.com/NotAFlyingGoose/" target="_blank" rel="noopener noreferrer">NotAFlyingGoose</a>' });
     word_right.appendChild(sources);

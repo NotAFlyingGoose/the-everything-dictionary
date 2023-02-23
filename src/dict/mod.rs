@@ -49,6 +49,7 @@ pub(crate) struct Word {
     pub(crate) sources: Vec<String>,
 
     pub(crate) last_updated: String,
+    version_0_1_2: String,
 }
 
 impl Word {
@@ -117,11 +118,12 @@ impl Word {
             sources,
 
             last_updated: now.as_millis().to_string(),
+            version_0_1_2: String::new(),
         })
     }
 }
 
-pub(crate) async fn update_word(mut db: Connection<Redis>, db_key: &str, word: &str) -> Option<String> {
+pub(crate) async fn update_word(db: &mut Connection<Redis>, db_key: &str, word: &str) -> Option<String> {
     let new_word = Word::scrape(word).await?;
 
     let json = serde_json::to_string(&new_word).unwrap_or_else(|err| {

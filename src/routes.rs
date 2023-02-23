@@ -28,19 +28,13 @@ pub(crate) fn define(word: String) -> Option<RawHtml<String>> {
 
 #[get("/api/define/<word>")]
 pub(crate) async fn api(mut db: Connection<Redis>, word: String) -> Option<RawJson<String>> {
-    db.incr(format!("lookups:{}", &word), 1)
-        .await
-        .unwrap_or_else(|err| {
-            println!("hset error: {}", err);
-        });
-
     let db_key = format!("word:{}", &word);
     let word_data = {
         if !db.exists(&db_key).await.unwrap_or_else(|err| {
             println!("exists error: {}", err);
             false
         }) {
-            update_word(db, &db_key, &word).await?
+            update_word(&mut db, &db_key, &word).await?
         } else {
             let json: String = db.get(&db_key).await.ok().unwrap();
 
@@ -53,16 +47,21 @@ pub(crate) async fn api(mut db: Connection<Redis>, word: String) -> Option<RawJs
                 let update_period = 1000 * 60 * 60 * 24 * 30; // one full month
     
                 if now.as_millis() - last_updated > update_period {
-                    update_word(db, &db_key, &word).await?
+                    update_word(&mut db, &db_key, &word).await?
                 } else {
                     json
                 }
             } else {
-                update_word(db, &db_key, &word).await?
+                update_word(&mut db, &db_key, &word).await?
             }
-
         }
     };
+
+    db.incr(format!("lookups:{}", &word), 1)
+        .await
+        .unwrap_or_else(|err| {
+            println!("hset error: {}", err);
+        });
     
     Some(RawJson(word_data))
 }

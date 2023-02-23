@@ -112,6 +112,8 @@ pub(crate) async fn scrape_macmillan(word: &str) -> Option<(Vec<Vec<Definition>>
         return None;
     }
 
+    let part_of_speech = el_to_string(*find!(word_area, ".PART-OF-SPEECH").unwrap());
+
     let definition_area = word_area.children()
         .find(|child| child.value().is_element() 
             && child.value().as_element().unwrap().attrs.is_empty())?
@@ -152,7 +154,7 @@ pub(crate) async fn scrape_macmillan(word: &str) -> Option<(Vec<Vec<Definition>>
             }
 
             sense.push(Definition {
-                part_of_speech: "noun".to_string(),
+                part_of_speech: part_of_speech.clone(),
                 meaning,
                 examples,
             });
@@ -210,7 +212,7 @@ pub(crate) async fn scrape_wiki(word: &str) -> Option<(Vec<Origin>, Vec<Definiti
                 for grandchild in child.children() {
                     if !grandchild.value().is_element() { continue }
 
-                    let meaning = el_to_string_with(grandchild, &["a"], false, &[INCLUDED_TAGS, &["span"]].concat());
+                    let meaning = el_to_string_with(grandchild, &["a"], false, &[INCLUDED_TAGS, &["span", "i"]].concat());
                     if meaning.is_empty() { continue }
 
                     let mut examples = Vec::new();
@@ -219,7 +221,7 @@ pub(crate) async fn scrape_wiki(word: &str) -> Option<(Vec<Origin>, Vec<Definiti
                     if examples_list.is_some() {
                         for el in examples_list.unwrap().children() {
                             if !el.value().is_element() || el.value().as_element().unwrap().name() != "dd" { continue }
-                            examples.push(el_to_string_with(el, &["span"], true, INCLUDED_TAGS))
+                            examples.push(el_to_string_with(el, &["span", "i"], true, INCLUDED_TAGS))
                         }
                     }
 
@@ -470,6 +472,7 @@ fn el_to_string_with(node: NodeRef<Node>, pass_through: &[&str], pass_replace: b
     }
     res.trim()
         .replace("  ", " ")
+        .replace(" ”", "”")
         .replace(" ,", ",")
         .replace(" !", "!")
         .replace(" ?", "?")

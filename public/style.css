@@ -80,7 +80,7 @@ ol {
 li.numbered,
 li.lettered {
     counter-increment: li;
-	padding: 0.5em 0;
+	padding: 1.5em 0;
 }
 
 li.numbered::before {
@@ -92,7 +92,7 @@ li.numbered::before {
     vertical-align: top;
     width: 2em;
     margin-left: -3em;
-    margin-right: 1em;
+    margin-right: 0.5em;
     text-align: right;
     direction: rtl;
 }
@@ -106,91 +106,94 @@ li.lettered::before {
     vertical-align: top;
     width: 1.5em;
     margin-left: -2em;
-    margin-right: 1em;
+    margin-right: 0.5em;
     text-align: right;
     direction: rtl;
 }
 
 .def-content {
-	padding-bottom: 0.5em;
 	line-height: 150%;
     display: inline-block;
     vertical-align: top;
+    max-width: 100%;
 }
 
 .part-of-speech {
     font-size: 1.5em;
 	border-radius: 15px;
 	padding: 0px 6px 3px 6px;
+    margin-bottom: 1em;
+    border-width: 1px;
+    border-style: solid;
 }
 
 .noun {
-	border: 1px solid lime;
+	border-color: lime;
 	color: lime;
 }
 
 .adjective {
-	border: 1px solid cornflowerblue;
+	border-color: cornflowerblue;
 	color: cornflowerblue;
 }
 
 .article {
-	border: 1px solid orchid;
+	border-color: orchid;
 	color: orchid;
 }
 
 .particle {
-	border: 1px solid teal;
+	border-color: teal;
 	color: teal;
 }
 
 .verb {
-	border: 1px solid orange;
+	border-color: orange;
 	color: orange;
 }
 
 .adverb {
-	border: 1px solid violet;
+	border-color: violet;
 	color: violet;
 }
 
 .slang {
-	border: 1px solid khaki;
+	border-color: khaki;
 	color: khaki;
 }
 
 .interjection {
-	border: 1px solid indianred;
+	border-color: indianred;
 	color: indianred;
 }
 
 .phrase {
-	border: 1px solid hotpink;
+	border-color: hotpink;
 	color: hotpink;
 }
 
 .proverb {
-	border: 1px solid salmon;
+	border-color: salmon;
 	color: salmon;
 }
 
 .preposition {
-	border: 1px solid springgreen;
+	border-color: springgreen;
 	color: springgreen;
 }
 
 .conjunction {
-	border: 1px solid salmon;
+	border-color: salmon;
 	color: salmon;
 }
 
 .prefix {
-	border: 1px solid green;
+	border-color: green;
 	color: green;
 }
 
 .suffix {
-	border: 1px solid cadetblue;
+	border-color: cadetblue;
 	color: cadetblue;
 }
 

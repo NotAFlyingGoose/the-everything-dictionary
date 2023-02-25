@@ -6,19 +6,19 @@ use scraper::{Html, Selector, ElementRef, Node, node::Text};
 use super::{Origin, Definition, restrictor::RESTRICTOR};
 
 macro_rules! find {
-    ($element: expr, $selector: literal) => {
+    ($parent: expr, $selector: literal) => {
         {
             let sel = Selector::parse($selector).unwrap();
-            $element.select(&sel).nth(0)
+            $parent.select(&sel).nth(0)
         }
     };
 }
 
-macro_rules! loop_find_all {
-    ($element: expr, $selector: literal, $name: ident, $for_each: expr) => {
+macro_rules! find_loop {
+    ($parent: expr, $selector: literal, $name: ident, $for_each: expr) => {
         {
             let sel = Selector::parse($selector).unwrap();
-            for $name in $element.select(&sel) {
+            for $name in $parent.select(&sel) {
                 $for_each
             }
         }
@@ -47,7 +47,7 @@ pub(crate) async fn scrape_vocab(word: &str) -> Option<(Option<String>, Option<S
 
     let doc = Html::parse_document(&body);
 
-    let word_area = find!(doc, ".word-area")?;
+    let word_area = find!(doc.root_element(), ".word-area")?;
 
     let real_word = el_to_string(*find!(word_area, "h1")?);
     if real_word != word {
@@ -63,7 +63,7 @@ pub(crate) async fn scrape_vocab(word: &str) -> Option<(Option<String>, Option<S
 
     let mut definitions = Vec::new();
 
-    loop_find_all!(ol, "li", item, {
+    find_loop!(ol, "li", item, {
         let def_area = find!(item, ".definition")?;
 
         let part_of_speech = el_to_string(*find!(def_area, ".pos-icon")?);
@@ -72,7 +72,7 @@ pub(crate) async fn scrape_vocab(word: &str) -> Option<(Option<String>, Option<S
 
         let mut examples = Vec::new();
 
-        loop_find_all!(item, ".example", example, {
+        find_loop!(item, ".example", example, {
             examples.push(el_to_string(*example).replace("\n", ""));
         });
 
@@ -125,7 +125,7 @@ pub(crate) async fn scrape_macmillan(word: &str) -> Option<(Vec<Vec<Definition>>
 
     let mut definitions = Vec::new();
 
-    loop_find_all!(ol, "li", item, {
+    find_loop!(ol, "li", item, {
         let sense_body = if let Some(el) = find!(item, ".SENSE-BODY") {
             el
         } else {
@@ -134,7 +134,7 @@ pub(crate) async fn scrape_macmillan(word: &str) -> Option<(Vec<Vec<Definition>>
 
         let mut sense = Vec::new();
 
-        loop_find_all!(sense_body, ".dflex", body, {
+        find_loop!(sense_body, ".dflex", body, {
             let meaning = if let Some(el) = find!(body, ".DEFINITION") {
                 el
             } else {
@@ -278,7 +278,7 @@ pub(crate) async fn scrape_wiki(word: &str) -> Option<(Vec<Origin>, Vec<Definiti
 
 pub(crate) async fn scrape_etym(word: &str) -> Option<(Vec<Origin>, &str)> {
     let body = reqwest::get(&format!(
-        "{}://{}/search?q={}",
+        "{}://{}/word/{}",
         PROTOCOL,
         ETYM_URL_BASE,
         word,
@@ -315,23 +315,13 @@ pub(crate) async fn scrape_etym(word: &str) -> Option<(Vec<Origin>, &str)> {
     let mut first = true;
     let word_name = find_startswith(doc.tree.root(), "word__name")?;
 
-    let all_entries = word_name.parent()?.parent()?.parent()?;
-
-    for word_entry in all_entries.children() {
-        if !word_entry.value().is_element() {
-            continue
-        }
-        let word_entry_el = word_entry.value().as_element()?;
-        if !word_entry_el.attr("class").map(|class| class.starts_with("word")).unwrap_or(false) {
-            continue
-        }
-
+    find_loop!(doc, ".word--C9UPa", word_entry, {
         let word_name = {
             if first {
                 first = false;
                 word_name
             } else {
-                find_startswith(word_entry, "word__name")?
+                find_startswith(*word_entry, "word__name")?
             }
         };
 
@@ -371,7 +361,7 @@ pub(crate) async fn scrape_etym(word: &str) -> Option<(Vec<Origin>, &str)> {
 
         let mut origin = String::new();
 
-        loop_find_all!(find!(ElementRef::wrap(word_name.parent()?)?, "section")?, "p", p, {
+        find_loop!(find!(ElementRef::wrap(word_name.parent()?)?, "section")?, "p", p, {
             if !origin.is_empty() {
                 origin.push_str("<br>");
             }
@@ -382,7 +372,7 @@ pub(crate) async fn scrape_etym(word: &str) -> Option<(Vec<Origin>, &str)> {
             part_of_speech,
             origin,
         });
-    }
+    });
 
     if origins.is_empty() {
         None
@@ -410,7 +400,7 @@ pub(crate) async fn scrape_stock(word: &str) -> Option<(Vec<String>, &str)> {
 
     let mut imgs = Vec::new();
 
-    loop_find_all!(doc, ".search-result-cell", img_div, {
+    find_loop!(doc, ".search-result-cell", img_div, {
         let img_el = find!(img_div, "img")?.value();
 
         if RESTRICTOR.is_restricted(img_el.attr("alt")?.to_lowercase().as_str()) { continue }

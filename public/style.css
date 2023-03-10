@@ -13,10 +13,20 @@ body {
     overflow-y: scroll;
 }
 
+.logo {
+    filter: brightness(75%);
+    height: 4em;
+    position: absolute;
+    top: 1em;
+}
+
+#content {
+	margin-left: 10%;
+	margin-right: 10%;
+}
+
 #word {
 	width: 100%;
-	display: flex;
-	justify-content: space-between;
 	margin-left: auto;
 	margin-right: auto;
     transform: translateY(100%);
@@ -24,9 +34,11 @@ body {
     opacity: 0;
 }
 
-#content {
-	margin-left: 10%;
-	margin-right: 10%;
+.word-column {
+	max-width: 50%;
+	height: auto;
+	border-radius: 10px;
+    float:left;
 }
 
 #word-overview {
@@ -211,13 +223,14 @@ li.lettered::before {
 	width: 100%;
 	display: flex;
 	justify-content: space-between;
+    flex-wrap: wrap;
 	margin-left: auto;
 	margin-right: auto;
-    padding-top: .333%;
 }
 
 .stock-img {
 	max-width: 33%;
+    padding-top: .333%;
 	height: auto;
 	border-radius: 10px;
     object-fit: cover;
@@ -247,19 +260,9 @@ p {
 	color: rgb(107, 200, 255);
 }
 
-.logo {
-    filter: brightness(75%);
-}
-
 a {
     text-decoration: none;
     color: lightgray;
-}
-
-.word-column {
-	max-width: 50%;
-	height: auto;
-	border-radius: 10px;
 }
 
 .alternate {
@@ -304,7 +307,7 @@ i, b, strong {
     color: lightgray;
 	border-radius: 2em;
 	padding: 0.75em;
-	margin: 0em 0.5em;
+	margin: 0.25em 0.5em;
 	background-color: #444444;
     border: none;
 }
@@ -402,5 +405,54 @@ i, b, strong {
     100% {
         opacity: 1;
         -webkit-transform: translateY(0%);
+    }
+}
+
+/* Mobile */
+
+@media all and (max-width:800px) {
+    .logo {
+        content: url("/logo_large.png");
+        width: 80%;
+        height: auto;
+        position: relative;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    #content, #word {
+        margin: 0;
+    }
+
+    .word-column {
+        display: block; 
+        float: none;
+        max-width: 100%;
+        width: 100%;
+        margin: 0;
+    }
+
+    #word-overview {
+        width: 100%;
+        margin: 0;
+    }
+
+    .tab-bar {
+        text-align: center;
+    }
+
+    .stock-img {
+	    max-width: 50%;
+	    width: 50%;
+	    min-width: 50%;
+    }
+
+    .sources {
+        text-align: left;
     }
 }

@@ -9,9 +9,9 @@ function search(ele) {
     }
 }
 
-document.onkeydown = function (evt) {
-    evt = evt || window.event;
-    if (evt.key.length === 1 && input !== document.activeElement) {
+document.onkeydown = function (e) {
+    e = e || window.event;
+    if (!e.ctrlKey && !e.metaKey && e.key.length === 1 && input !== document.activeElement) {
         window.scrollTo(0, 0);
         input.focus();
         input.select();

@@ -3,11 +3,57 @@
 {% block title %}The Everything Dictionary{% endblock %}
 
 {% block body %}
-<div style="position:absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);">
-    <img class="logo" src="logo_large.png" style="width: 100%; display: block; margin-left: auto; margin-right: auto;">
+<div id="center">
+    <img class="logo" src="logo_large.png">
     <input type="text" placeholder="Learn a new word" id="search" onkeydown="search(this)"/>
 </div>
 <p style="position: absolute; bottom: 0; left: 50%; transform: translate(-50%, -50%); color: gray; font-size: 1.5em;">
     Made by <a href="https://github.com/NotAFlyingGoose/" target="_blank" rel="noopener noreferrer">NotAFlyingGoose</a>
 </p>
+
+<style>
+    #center {
+        position:absolute;
+        top: 30%;
+        left: 50%;
+        transform:
+        translate(-50%, -50%);
+    }
+    
+    .logo {
+        position: relative;
+        width: 100%;
+        height: auto;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #search {
+        width: 100%;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    @media all and (max-width:800px) {
+        #center {
+            width: 100vw;
+        }
+    
+        .logo {
+            width: 100vw;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #search {
+            width: 80%;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+</style>
 {% endblock %}

@@ -172,23 +172,17 @@ fetch('/api/define/' + word).then(function (response) {
     // now the right side
 
     if (data['stock_images']) {
-        let img_containers = [
-            createEl('div', { clazz: 'img-container' }),
-            createEl('div', { clazz: 'img-container' }),
-        ];
+        let img_container = createEl('div', { clazz: 'img-container' });
         for (idx in data['stock_images']) {
-            appendEl(img_containers[Math.floor(idx / 3)], 'img', {
+            appendEl(img_container, 'img', {
                 clazz: 'stock-img',
                 source: data['stock_images'][idx]
             });
         }
-        for (container of img_containers) {
-            word_right.appendChild(container);
-        }
+        word_right.appendChild(img_container);
     }
 
     let origin_div = createEl('ul', { clazz: 'origins' });
-    appendEl(origin_div, 'h2', { inner: 'Word Origin' });
 
     let add_origins = function (origins) {
         if (!origins)
@@ -214,9 +208,11 @@ fetch('/api/define/' + word).then(function (response) {
         }
     }
 
-    add_origins(data['etym_origins']);
-    if (!data['etym_origins']) {
-        // appendEl(origin_div, 'h2', 'Wiktionary', { clazz: 'alternate-small' });
+    if (data['etym_origins']) {
+        appendEl(origin_div, 'h2', { inner: 'Word Origin' });
+        add_origins(data['etym_origins']);
+    } else if (data['wiki_origins']) {
+        appendEl(origin_div, 'h2', { inner: 'Word Origin' });
         add_origins(data['wiki_origins']);
     }
 

@@ -312,18 +312,8 @@ pub(crate) async fn scrape_etym(word: &str) -> Option<(Vec<Origin>, &str)> {
 
     let mut origins = Vec::new();
 
-    let mut first = true;
-    let word_name = find_startswith(doc.tree.root(), "word__name")?;
-
     find_loop!(doc, ".word--C9UPa", word_entry, {
-        let word_name = {
-            if first {
-                first = false;
-                word_name
-            } else {
-                find_startswith(*word_entry, "word__name")?
-            }
-        };
+        let word_name = find_startswith(*word_entry, "word__name")?;
 
         let word_name_text: Vec<&Text> = word_name
             .children()

@@ -68,8 +68,8 @@ fetch('/api/define/' + word).then(function (response) {
         let overview = createEl('div', { id: 'word-overview' });
 
         let tag = 'h3';
-        for (raw_line of data['overview']) {
-            appendEl(overview, tag, { inner: decodeURIComponent(raw_line) })
+        for (line of data['overview']) {
+            appendEl(overview, tag, { inner: line })
             tag = 'h4';
         }
 
@@ -128,13 +128,13 @@ fetch('/api/define/' + word).then(function (response) {
 
                 let def_content = createEl('div', { clazz: 'def-content' });
 
-                appendEl(def_content, 'span', { clazz: 'meaning', inner: decodeURIComponent(sense['meaning']) })
+                appendEl(def_content, 'span', { clazz: 'meaning', inner: sense['meaning'] })
 
                 li.appendChild(def_content);
 
                 let examples = createEl('ul', { clazz: 'examples' });
                 for (let example of sense['examples']) {
-                    appendEl(examples, 'li', { clazz: 'example', inner: decodeURIComponent(example) })
+                    appendEl(examples, 'li', { clazz: 'example', inner: example })
                 }
                 li.appendChild(examples);
 
@@ -197,8 +197,7 @@ fetch('/api/define/' + word).then(function (response) {
                 });
             }
 
-            let raw_origin = decodeURIComponent(origin['origin']);
-            let paras = raw_origin.split('<br>');
+            let paras = origin['origin'].split('<br>');
 
             for (let para of paras) {
                 appendEl(li, 'p', { clazz: 'origin-text', inner: para });

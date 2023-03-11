@@ -6,7 +6,7 @@
     <a href="/">
 	    <img class="logo" src="/logo_small.png">
 	</a>
-	<input style="margin-top: 1.5em; margin-bottom: 2em;" type="text" placeholder="Learn a new word" id="search" onkeydown="search(this)"/>
+	<input type="text" placeholder="Learn a new word" autocapitalize="off" autocomplete="off" id="search" style="margin-top: 1.5em; margin-bottom: 2em;" onkeydown="search(this)"/>
     <div id="content">
         {% block content %}{% endblock %}
     </div>

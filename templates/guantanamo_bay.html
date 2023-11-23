@@ -1,0 +1,67 @@
+{% extends "subpage.html" %}
+
+{% block title %}The Everything Dictionary{% endblock %}
+
+{% block content %}
+<div id="center">
+  <div style="width:70vw;">
+   <h1>Good things must come to an end.</h1>
+   <h3>Unforunately some of the websites changed and I'm too <b>lazy</b> to fix the issues. I know right?</h3>
+   <h3>On top of that, I've now been sent to <i>Guantanamo Bay</i> for stealing a bunch content from other sites, so it might be a long time before I see you again :(</h3>
+   <h3>In the meantime, expand your vocabulary, become expert in more subjects, and flourish and prosper!</h3>
+  </div>
+</div>
+<ul>
+{% for word in words %}
+  <li class="ranking">
+    <div class="name">
+      {{ word.name }}
+    </div>
+    <div class="lookups">
+      {{ word.count }}
+    </div>
+  </li>
+{% endfor %}
+</ul>
+
+<p style="text-align:center;">I removed some innapropriate ones</p>
+
+<style>
+    i, b {
+      font-size: 1.2em;
+    }
+
+    h1 {
+      font-size: 3em;
+    }
+  
+    #center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 50vh;
+    }
+
+    .ranking {
+      font-size: 2em;
+
+      display: flex;
+      justify-content: space-between;
+
+      background-color: #17191A;
+
+      border-radius: 10px;
+
+      margin: 0.5em;
+      padding: 0.25em;
+    }
+
+    .name {
+      margin-left: 1em;
+    }
+
+    .lookups {
+      margin-right: 1em;
+    }
+</style>
+{% endblock %}

@@ -6,28 +6,28 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-askama = "0.11.1"
+askama = "0.12"
 dotenv = "0.15.0"
 lazy_static = "1.4.0"
 rand = "0.8.5"
 reqwest = "0.11.14"
-scraper = "0.14.0"
+scraper = "0.18"
 ego-tree = "0.6.2"
 regex = "1.7.1"
 serde_json = "1.0.93"
 
 [dependencies.rocket]
-version = "0.5.0-rc.2"
+version = "0.5.0"
 features = ["tls"]
 
 [dependencies.rocket_db_pools]
-version = "0.1.0-rc.2"
+version = "0.1.0"
 features = ["deadpool_redis"]
 
 [dependencies.serde]
-version = "1.0.152"
+version = "1.0"
 features = ["derive"]
 
 [dependencies.tokio]
-version = "1.21.2"
-features = ["macros", "signal", "rt-multi-thread"]
+version = "1.34"
+features = ["macros", "signal", "rt-multi-thread", "sync"]

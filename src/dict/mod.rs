@@ -1,12 +1,15 @@
-
 mod restrictor;
 mod scrape;
 
-use std::{fmt::Display, time::{SystemTime, UNIX_EPOCH}};
+use std::{
+    fmt::Display,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
-use rocket_db_pools::{Connection, deadpool_redis::redis::AsyncCommands};
-use serde::{Serialize, Deserialize};
+use rocket_db_pools::{deadpool_redis::redis::AsyncCommands, Connection};
+use serde::{Deserialize, Serialize};
 
+pub(crate) use restrictor::*;
 pub(crate) use scrape::*;
 
 use crate::Redis;
@@ -56,53 +59,56 @@ impl Word {
     pub(crate) async fn scrape(word: &str) -> Option<Self> {
         let mut sources = Vec::new();
 
-        let (short, long, vocab_defs, source) = 
+        let (short, long, vocab_defs, source) =
             scrape_vocab(&word)
                 .await
                 .unwrap_or((None, None, Vec::new(), ""));
-        
+
         let mut overview = Vec::new();
-        if let Some(short) = short { overview.push(short) }
-        if let Some(long) = long { overview.push(long) }
-        if !source.is_empty() { sources.push(source.to_string()) }
+        if let Some(short) = short {
+            overview.push(short)
+        }
+        if let Some(long) = long {
+            overview.push(long)
+        }
+        if !source.is_empty() {
+            sources.push(source.to_string())
+        }
 
-        let (macmillan_defs, source) = 
-            scrape_macmillan(&word)
-                .await
-                .unwrap_or((Vec::new(), ""));
+        let (macmillan_defs, source) = scrape_macmillan(&word).await.unwrap_or((Vec::new(), ""));
 
-        if !source.is_empty() { sources.push(source.to_string()) }
-        
-        let (wiki_origins, wiki_defs, source) = 
+        if !source.is_empty() {
+            sources.push(source.to_string())
+        }
+
+        let (wiki_origins, wiki_defs, source) =
             scrape_wiki(&word)
                 .await
                 .unwrap_or((Vec::new(), Vec::new(), ""));
-        
-        if !source.is_empty() { sources.push(source.to_string()) }
+
+        if !source.is_empty() {
+            sources.push(source.to_string())
+        }
 
         // check for no defs
-        if vocab_defs.is_empty() && macmillan_defs.is_empty()  && wiki_defs.is_empty() {
+        if vocab_defs.is_empty() && macmillan_defs.is_empty() && wiki_defs.is_empty() {
             return None;
         }
-        
-        let (etym_origins, source) = 
-            scrape_etym(&word)
-                .await
-                .unwrap_or((Vec::new(), ""));
 
-        if !source.is_empty() { sources.push(source.to_string()) }
-        
-        let (stock_images, source) = 
-            scrape_stock(&word)
-                .await
-                .unwrap_or((Vec::new(), ""));
-        
-        if !source.is_empty() { sources.push(source.to_string()) }
+        let (etym_origins, source) = scrape_etym(&word).await.unwrap_or((Vec::new(), ""));
+
+        if !source.is_empty() {
+            sources.push(source.to_string())
+        }
+
+        let (stock_images, source) = scrape_stock(&word).await.unwrap_or((Vec::new(), ""));
+
+        if !source.is_empty() {
+            sources.push(source.to_string())
+        }
 
         let now = SystemTime::now();
-        let now = now
-            .duration_since(UNIX_EPOCH)
-            .expect("Time went backwards");
+        let now = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
 
         Some(Word {
             overview,
@@ -123,7 +129,11 @@ impl Word {
     }
 }
 
-pub(crate) async fn update_word(db: &mut Connection<Redis>, db_key: &str, word: &str) -> Option<String> {
+pub(crate) async fn update_word(
+    db: &mut Connection<Redis>,
+    db_key: &str,
+    word: &str,
+) -> Option<String> {
     let new_word = Word::scrape(word).await?;
 
     let json = serde_json::to_string(&new_word).unwrap_or_else(|err| {
@@ -131,11 +141,9 @@ pub(crate) async fn update_word(db: &mut Connection<Redis>, db_key: &str, word: 
         "{}".to_string()
     });
 
-    db.set(db_key, &json)
-        .await
-        .unwrap_or_else(|err| {
-            println!("hset error: {}", err);
-        });
-    
+    db.set(db_key, &json).await.unwrap_or_else(|err| {
+        println!("hset error: {}", err);
+    });
+
     Some(json)
 }

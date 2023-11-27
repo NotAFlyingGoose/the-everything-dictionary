@@ -8,13 +8,9 @@ use rocket::{
     fs::NamedFile,
     response::content::{RawHtml, RawJson},
 };
-use rocket_db_pools::{deadpool_redis::redis::AsyncCommands, Connection};
 use tokio::sync::OnceCell;
 
-use crate::{
-    dict::{update_word, Word, RESTRICTOR},
-    Redis,
-};
+use crate::dict::{Word, RESTRICTOR};
 
 #[derive(Debug)]
 struct WordRanking {
@@ -41,8 +37,8 @@ struct DefineTemplate {
 static TOP_WORDS: OnceCell<Vec<WordRanking>> = OnceCell::const_new();
 
 #[get("/")]
-pub(crate) async fn guantanamo_bay(mut db: Connection<Redis>) -> Option<RawHtml<String>> {
-    let words = match TOP_WORDS.get() {
+pub(crate) async fn guantanamo_bay() -> Option<RawHtml<String>> {
+    /* let words = match TOP_WORDS.get() {
         Some(words) => words,
         None => {
             let keys: Vec<String> = db.keys("lookups:*".to_string()).await.unwrap();
@@ -64,9 +60,13 @@ pub(crate) async fn guantanamo_bay(mut db: Connection<Redis>) -> Option<RawHtml<
 
             TOP_WORDS.get().unwrap()
         }
-    };
+    }; */
+    let words = Vec::new();
 
-    GuantanamoBayTemplate { words }.render().ok().map(RawHtml)
+    GuantanamoBayTemplate { words: &words }
+        .render()
+        .ok()
+        .map(RawHtml)
 }
 
 #[get("/")]
@@ -77,48 +77,6 @@ pub(crate) fn index() -> Option<RawHtml<String>> {
 #[get("/define/<word>")]
 pub(crate) fn define(word: String) -> Option<RawHtml<String>> {
     DefineTemplate { word }.render().ok().map(RawHtml)
-}
-
-#[get("/api/define/<word>")]
-pub(crate) async fn api(mut db: Connection<Redis>, word: String) -> Option<RawJson<String>> {
-    let db_key = format!("word:{}", &word);
-    let word_data = {
-        if !db.exists(&db_key).await.unwrap_or_else(|err| {
-            println!("exists error: {}", err);
-            false
-        }) {
-            update_word(&mut db, &db_key, &word).await?
-        } else {
-            let json: String = db.get(&db_key).await.ok().unwrap();
-
-            if let Ok(old_word) = serde_json::from_str::<Word>(&json) {
-                let last_updated: u128 = old_word.last_updated.parse().ok().unwrap();
-                let now = SystemTime::now();
-                let now = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
-                let update_period = if cfg!(debug_assertions) {
-                    0
-                } else {
-                    1000 * 60 * 60 * 24 * 30 // one full month
-                };
-
-                if now.as_millis() - last_updated > update_period {
-                    update_word(&mut db, &db_key, &word).await?
-                } else {
-                    json
-                }
-            } else {
-                update_word(&mut db, &db_key, &word).await?
-            }
-        }
-    };
-
-    db.incr(format!("lookups:{}", &word), 1)
-        .await
-        .unwrap_or_else(|err| {
-            println!("hset error: {}", err);
-        });
-
-    Some(RawJson(word_data))
 }
 
 #[get("/<file>")]

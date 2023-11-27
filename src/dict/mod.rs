@@ -6,13 +6,10 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use rocket_db_pools::{deadpool_redis::redis::AsyncCommands, Connection};
 use serde::{Deserialize, Serialize};
 
 pub(crate) use restrictor::*;
 pub(crate) use scrape::*;
-
-use crate::Redis;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct Definition {
@@ -127,23 +124,4 @@ impl Word {
             version_0_1_2: String::new(),
         })
     }
-}
-
-pub(crate) async fn update_word(
-    db: &mut Connection<Redis>,
-    db_key: &str,
-    word: &str,
-) -> Option<String> {
-    let new_word = Word::scrape(word).await?;
-
-    let json = serde_json::to_string(&new_word).unwrap_or_else(|err| {
-        println!("Error parsing word into json: {}", err);
-        "{}".to_string()
-    });
-
-    db.set(db_key, &json).await.unwrap_or_else(|err| {
-        println!("hset error: {}", err);
-    });
-
-    Some(json)
 }
